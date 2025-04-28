@@ -1,24 +1,35 @@
 package com.tnowad.tempest;
-
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HourlyForecastActivity extends AppCompatActivity {
+
+    private RecyclerView recyclerHourly;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_hourly_forecast);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        recyclerHourly = findViewById(R.id.recycler_hourly);
+
+        // Set up RecyclerView with adapter
+        recyclerHourly.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        // Assuming you have a WeatherAdapter class for the data
+        recyclerHourly.setAdapter(new WeatherAdapter(getHourlyData()));
+    }
+
+    // Mock data for demonstration
+    private List<Weather> getHourlyData() {
+        List<Weather> hourlyData = new ArrayList<>();
+        for (int i = 0; i < 24; i++) {
+            hourlyData.add(new Weather("Hour " + i, "30°C", R.drawable.ic_weather_sunny));
+        }
+        return hourlyData;
     }
 }
