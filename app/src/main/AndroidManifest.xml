@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Tempest"
         tools:targetApi="31">
         <activity
-            android:name=".SettingActivity"
+            android:name=".SettingsActivity"
             android:exported="false" />
         <activity
             android:name=".WeatherMapActivity"
