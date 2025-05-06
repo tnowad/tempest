@@ -17,12 +17,17 @@ import com.tnowad.tempest.api.RetrofitInstance;
 import com.tnowad.tempest.api.WeatherApi;
 import com.tnowad.tempest.api.WeatherResponse;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class HomeActivity extends AppCompatActivity {
-    private TextView tvCity, tvTemp, tvHumidity, tvWind;
+
+    private TextView tvCity, tvDate, tvTemp, tvHumidity, tvWind, tvPrecip;
     private ImageView imgWeather;
     private MaterialButton btnForecast;
 
@@ -35,9 +40,11 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         tvCity = findViewById(R.id.tv_city);
+        tvDate = findViewById(R.id.tv_date);
         tvTemp = findViewById(R.id.tv_temp);
         tvHumidity = findViewById(R.id.tv_humidity);
         tvWind = findViewById(R.id.tv_wind);
+        tvPrecip = findViewById(R.id.tv_precip);
         imgWeather = findViewById(R.id.img_weather);
         btnForecast = findViewById(R.id.btn_forecast);
 
@@ -45,12 +52,18 @@ public class HomeActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate: HomeActivity started");
 
+        setCurrentDate();
         fetchLocationAndWeather();
 
         btnForecast.setOnClickListener(v -> {
             Log.d(TAG, "Forecast button clicked");
             startActivity(new Intent(HomeActivity.this, HourlyForecastActivity.class));
         });
+    }
+
+    private void setCurrentDate() {
+        String currentDate = new SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(new Date());
+        tvDate.setText(currentDate);
     }
 
     @SuppressLint("MissingPermission")
@@ -114,9 +127,10 @@ public class HomeActivity extends AppCompatActivity {
     private void updateUI(WeatherResponse weather) {
         Log.d(TAG, "updateUI: Updating UI with Open-Meteo data");
 
-        tvCity.setText("Lat: " + weather.latitude + ", Lon: " + weather.longitude);
+        tvCity.setText(String.format(Locale.getDefault(), "Lat: %.2f, Lon: %.2f", weather.latitude, weather.longitude));
         tvTemp.setText(Math.round(weather.currentWeather.temperature) + "°C");
-        tvHumidity.setText("Precip: " + weather.hourly.precipitationProbability.get(0) + "%");
+        tvHumidity.setText("Humidity: --%"); // Not available in current_weather; needs separate fetch if needed
+        tvPrecip.setText("Precipitation: " + weather.hourly.precipitationProbability.get(0) + "%");
         tvWind.setText("Wind: " + weather.currentWeather.windspeed + " km/h");
 
         int code = weather.currentWeather.weathercode;

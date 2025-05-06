@@ -5,30 +5,40 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".HomeActivity">
 
-
-    <com.google.android.material.textview.MaterialTextView
+    <!-- City and Date -->
+    <TextView
         android:id="@+id/tv_city"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Your City"
-        android:textSize="24sp"
+        android:text="City Name"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="22sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <TextView
+        android:id="@+id/tv_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today, May 11"
+        android:textSize="14sp"
+        android:textColor="#666"
+        app:layout_constraintTop_toBottomOf="@id/tv_city"
+        app:layout_constraintStart_toStartOf="@id/tv_city" />
+
+    <!-- Weather Icon and Temperature -->
     <ImageView
         android:id="@+id/img_weather"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginTop="32dp"
         android:src="@drawable/ic_weather_sunny"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_date"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_city" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/tv_temp"
@@ -36,41 +46,57 @@
         android:layout_height="wrap_content"
         android:text="28°C"
         android:textSize="48sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/img_weather"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/img_weather" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Weather Details Row -->
     <LinearLayout
-        android:id="@+id/info_row"
+        android:id="@+id/weather_details_row"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="vertical"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_temp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_temp">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/tv_humidity"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Humidity: 60%" />
+            android:text="Humidity: 60%"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/tv_wind"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" | Wind: 10 km/h" />
+            android:text="Wind: 10 km/h"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_precip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Precipitation: 20%"
+            android:textSize="16sp" />
     </LinearLayout>
 
+    <!-- Forecast Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_forecast"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:text="View Forecast"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"
+        app:cornerRadius="8dp"
+        app:layout_constraintTop_toBottomOf="@id/weather_details_row"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/info_row" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
