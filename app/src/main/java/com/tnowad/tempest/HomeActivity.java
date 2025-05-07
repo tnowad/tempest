@@ -1,13 +1,19 @@
 package com.tnowad.tempest;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -35,6 +41,9 @@ public class HomeActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private static final String TAG = "HomeActivity";
 
+    private static final int TEMPERATURE_THRESHOLD = 35;
+    private static final int PRECIPITATION_THRESHOLD = 80; // Ngưỡng mưa (phần trăm) để cảnh báo
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +58,6 @@ public class HomeActivity extends AppCompatActivity {
         imgWeather = findViewById(R.id.img_weather);
         btnHourlyForecast = findViewById(R.id.btn_hourly_forecast);
         btnDailyForecast = findViewById(R.id.btn_daily_forecast);
-
 
         btnHourlyForecast.setEnabled(false);
         btnDailyForecast.setEnabled(false);
@@ -134,6 +142,8 @@ public class HomeActivity extends AppCompatActivity {
 
                     btnHourlyForecast.setEnabled(true);
                     btnDailyForecast.setEnabled(true);
+
+                    checkWeatherConditions(weather); // Kiểm tra điều kiện thời tiết
                 } else {
                     Log.e(TAG, "API error: " + response.message());
                     Toast.makeText(HomeActivity.this, "API error: " + response.message(), Toast.LENGTH_SHORT).show();
@@ -153,7 +163,7 @@ public class HomeActivity extends AppCompatActivity {
 
         tvCity.setText(String.format(Locale.getDefault(), "Lat: %.2f, Lon: %.2f", weather.latitude, weather.longitude));
         tvTemp.setText(Math.round(weather.currentWeather.temperature) + "°C");
-        tvHumidity.setText("Humidity: --%"); // Not available in current_weather; needs separate fetch if needed
+        tvHumidity.setText("Humidity: --%");
         tvPrecip.setText("Precipitation: " + weather.hourly.precipitationProbability.get(0) + "%");
         tvWind.setText("Wind: " + weather.currentWeather.windspeed + " km/h");
 
@@ -167,5 +177,37 @@ public class HomeActivity extends AppCompatActivity {
 
         imgWeather.setImageResource(iconRes);
         Log.d(TAG, "Weather icon set based on code: " + code);
+    }
+
+    private void checkWeatherConditions(WeatherResponse weather) {
+        var temperature = Math.round(weather.currentWeather.temperature);
+        int precipitation = weather.hourly.precipitationProbability.get(0); // Giả sử lấy xác suất mưa trong giờ đầu tiên
+
+        if (temperature > TEMPERATURE_THRESHOLD) {
+            sendNotification("High Temperature Alert", "The temperature is " + temperature + "°C. Stay cool!");
+        }
+
+        if (precipitation > PRECIPITATION_THRESHOLD) {
+            sendNotification("Heavy Rain Alert", "There is a " + precipitation + "% chance of rain. Carry an umbrella!");
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private void sendNotification(String title, String content) {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("weather_alerts", "Weather Alerts", NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        Notification notification = new Notification.Builder(this, "weather_alerts")
+                .setContentTitle(title)
+                .setContentText(content)
+                .setSmallIcon(R.drawable.ic_weather_alert)
+                .setPriority(Notification.PRIORITY_HIGH)
+                .build();
+
+        notificationManager.notify(1, notification);
     }
 }
