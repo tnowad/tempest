@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +24,7 @@ import com.google.gson.Gson;
 import com.tnowad.tempest.api.RetrofitInstance;
 import com.tnowad.tempest.api.WeatherApi;
 import com.tnowad.tempest.api.WeatherResponse;
+import com.tnowad.tempest.utils.SharedPrefsHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -37,10 +39,12 @@ public class HomeActivity extends AppCompatActivity {
     private TextView tvCity, tvDate, tvTemp, tvHumidity, tvWind, tvPrecip;
     private ImageView imgWeather;
     private MaterialButton btnHourlyForecast, btnDailyForecast;
+    private ToggleButton toggleTempUnit;
 
     private FusedLocationProviderClient fusedLocationClient;
     private static final String TAG = "HomeActivity";
 
+    private boolean isFahrenheit;
     private static final int TEMPERATURE_THRESHOLD = 35;
     private static final int PRECIPITATION_THRESHOLD = 80; // Ngưỡng mưa (phần trăm) để cảnh báo
 
@@ -58,9 +62,14 @@ public class HomeActivity extends AppCompatActivity {
         imgWeather = findViewById(R.id.img_weather);
         btnHourlyForecast = findViewById(R.id.btn_hourly_forecast);
         btnDailyForecast = findViewById(R.id.btn_daily_forecast);
+        toggleTempUnit = findViewById(R.id.toggle_temp_unit);
 
+        // Fetch saved temperature unit from SharedPreferences
+        isFahrenheit = SharedPrefsHelper.getTemperatureUnit(this).equals("F");
         btnHourlyForecast.setEnabled(false);
         btnDailyForecast.setEnabled(false);
+        toggleTempUnit.setChecked(isFahrenheit);
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         Log.d(TAG, "onCreate: HomeActivity started");
@@ -68,6 +77,15 @@ public class HomeActivity extends AppCompatActivity {
         setCurrentDate();
         fetchLocationAndWeather();
 
+        // Handle temperature unit toggle
+        toggleTempUnit.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isFahrenheit = isChecked;
+            // Save the selected unit in SharedPreferences
+            SharedPrefsHelper.saveTemperatureUnit(this, isFahrenheit ? "F" : "C");
+            updateTemperatureDisplay();  // Update the temperature display immediately when toggled
+        });
+
+        // Handle forecast buttons click
         btnHourlyForecast.setOnClickListener(v -> {
             if (weatherData != null) {
                 Intent intent = new Intent(HomeActivity.this, HourlyForecastActivity.class);
@@ -92,6 +110,20 @@ public class HomeActivity extends AppCompatActivity {
     private void setCurrentDate() {
         String currentDate = new SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(new Date());
         tvDate.setText(currentDate);
+    }
+
+    private void updateTemperatureDisplay() {
+        // Ensure that temperature is updated according to the selected unit (Celsius or Fahrenheit)
+        if (weatherData != null) {
+            double temp = weatherData.currentWeather.temperature;
+
+            if (isFahrenheit) {
+                temp = convertToFahrenheit(temp);
+                tvTemp.setText(Math.round(temp) + "°F");
+            } else {
+                tvTemp.setText(Math.round(temp) + "°C");
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -137,13 +169,13 @@ public class HomeActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     WeatherResponse weather = response.body();
                     Log.d(TAG, "Weather data fetched successfully");
+                    weatherData = weather;
                     updateUI(weather);
-                    weatherData = response.body();
 
                     btnHourlyForecast.setEnabled(true);
                     btnDailyForecast.setEnabled(true);
 
-                    checkWeatherConditions(weather); // Kiểm tra điều kiện thời tiết
+                    checkWeatherConditions(weather);
                 } else {
                     Log.e(TAG, "API error: " + response.message());
                     Toast.makeText(HomeActivity.this, "API error: " + response.message(), Toast.LENGTH_SHORT).show();
@@ -159,10 +191,10 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void updateUI(WeatherResponse weather) {
-        Log.d(TAG, "updateUI: Updating UI with Open-Meteo data");
+        Log.d(TAG, "updateUI: Updating UI with weather data");
 
         tvCity.setText(String.format(Locale.getDefault(), "Lat: %.2f, Lon: %.2f", weather.latitude, weather.longitude));
-        tvTemp.setText(Math.round(weather.currentWeather.temperature) + "°C");
+        updateTemperatureDisplay();
         tvHumidity.setText("Humidity: --%");
         tvPrecip.setText("Precipitation: " + weather.hourly.precipitationProbability.get(0) + "%");
         tvWind.setText("Wind: " + weather.currentWeather.windspeed + " km/h");
@@ -181,7 +213,8 @@ public class HomeActivity extends AppCompatActivity {
 
     private void checkWeatherConditions(WeatherResponse weather) {
         var temperature = Math.round(weather.currentWeather.temperature);
-        int precipitation = weather.hourly.precipitationProbability.get(0); // Giả sử lấy xác suất mưa trong giờ đầu tiên
+        int precipitation = weather.hourly.precipitationProbability.get(0);
+
 
         if (temperature > TEMPERATURE_THRESHOLD) {
             sendNotification("High Temperature Alert", "The temperature is " + temperature + "°C. Stay cool!");
@@ -209,5 +242,9 @@ public class HomeActivity extends AppCompatActivity {
                 .build();
 
         notificationManager.notify(1, notification);
+    }
+
+    private double convertToFahrenheit(double celsius) {
+        return (celsius * 9 / 5) + 32;
     }
 }
