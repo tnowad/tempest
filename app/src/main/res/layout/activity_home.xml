@@ -87,16 +87,35 @@
             android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- Forecast Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_forecast"
+    <LinearLayout
+        android:id="@+id/forecast_buttons_row"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="View Forecast"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_marginTop="32dp"
-        app:cornerRadius="8dp"
+        android:weightSum="2"
         app:layout_constraintTop_toBottomOf="@id/weather_details_row"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_hourly_forecast"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Hourly Forecast"
+            android:layout_marginEnd="8dp"
+            app:cornerRadius="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_daily_forecast"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Daily Forecast"
+            android:layout_marginStart="8dp"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

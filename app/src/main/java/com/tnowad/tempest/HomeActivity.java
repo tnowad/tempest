@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.Gson;
 import com.tnowad.tempest.api.RetrofitInstance;
 import com.tnowad.tempest.api.WeatherApi;
 import com.tnowad.tempest.api.WeatherResponse;
@@ -26,10 +27,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class HomeActivity extends AppCompatActivity {
-
+    private WeatherResponse weatherData;
     private TextView tvCity, tvDate, tvTemp, tvHumidity, tvWind, tvPrecip;
     private ImageView imgWeather;
-    private MaterialButton btnForecast;
+    private MaterialButton btnHourlyForecast, btnDailyForecast;
 
     private FusedLocationProviderClient fusedLocationClient;
     private static final String TAG = "HomeActivity";
@@ -46,8 +47,12 @@ public class HomeActivity extends AppCompatActivity {
         tvWind = findViewById(R.id.tv_wind);
         tvPrecip = findViewById(R.id.tv_precip);
         imgWeather = findViewById(R.id.img_weather);
-        btnForecast = findViewById(R.id.btn_forecast);
+        btnHourlyForecast = findViewById(R.id.btn_hourly_forecast);
+        btnDailyForecast = findViewById(R.id.btn_daily_forecast);
 
+
+        btnHourlyForecast.setEnabled(false);
+        btnDailyForecast.setEnabled(false);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         Log.d(TAG, "onCreate: HomeActivity started");
@@ -55,9 +60,24 @@ public class HomeActivity extends AppCompatActivity {
         setCurrentDate();
         fetchLocationAndWeather();
 
-        btnForecast.setOnClickListener(v -> {
-            Log.d(TAG, "Forecast button clicked");
-            startActivity(new Intent(HomeActivity.this, HourlyForecastActivity.class));
+        btnHourlyForecast.setOnClickListener(v -> {
+            if (weatherData != null) {
+                Intent intent = new Intent(HomeActivity.this, HourlyForecastActivity.class);
+                intent.putExtra("weatherData", new Gson().toJson(weatherData));
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Weather data not ready", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnDailyForecast.setOnClickListener(v -> {
+            if (weatherData != null) {
+                Intent intent = new Intent(HomeActivity.this, DailyForecastActivity.class);
+                intent.putExtra("weatherData", new Gson().toJson(weatherData));
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Weather data not ready", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -110,6 +130,10 @@ public class HomeActivity extends AppCompatActivity {
                     WeatherResponse weather = response.body();
                     Log.d(TAG, "Weather data fetched successfully");
                     updateUI(weather);
+                    weatherData = response.body();
+
+                    btnHourlyForecast.setEnabled(true);
+                    btnDailyForecast.setEnabled(true);
                 } else {
                     Log.e(TAG, "API error: " + response.message());
                     Toast.makeText(HomeActivity.this, "API error: " + response.message(), Toast.LENGTH_SHORT).show();

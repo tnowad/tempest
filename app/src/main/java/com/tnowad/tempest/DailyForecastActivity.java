@@ -5,6 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+import com.tnowad.tempest.api.WeatherResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,18 +21,28 @@ public class DailyForecastActivity extends AppCompatActivity {
         setContentView(R.layout.activity_daily_forecast);
 
         recyclerDaily = findViewById(R.id.recycler_daily);
-
-        // Set up RecyclerView with adapter
         recyclerDaily.setLayoutManager(new LinearLayoutManager(this));
-        recyclerDaily.setAdapter(new WeatherAdapter(getDailyData()));
+
+        String json = getIntent().getStringExtra("weatherData");
+        WeatherResponse weather = new Gson().fromJson(json, WeatherResponse.class);
+
+        recyclerDaily.setAdapter(new WeatherAdapter(getDailyData(weather)));
     }
 
-    // Mock data for demonstration
-    private List<Weather> getDailyData() {
+    private List<Weather> getDailyData(WeatherResponse weather) {
         List<Weather> dailyData = new ArrayList<>();
-        for (int i = 0; i < 7; i++) {
-            dailyData.add(new Weather("Day " + i, "28°C / 32°C", R.drawable.ic_weather_sunny));
+        List<String> dates = weather.daily.date;
+        List<Double> maxTemps = weather.daily.maxTemp;
+        List<Double> minTemps = weather.daily.minTemp;
+        List<Double> precipitation = weather.daily.precipitationSum;
+
+        for (int i = 0; i < dates.size(); i++) {
+            String day = dates.get(i);
+            String tempRange = Math.round(minTemps.get(i)) + "° / " + Math.round(maxTemps.get(i)) + "°";
+            int icon = R.drawable.ic_weather_sunny;
+            dailyData.add(new Weather(day, tempRange, icon));
         }
+
         return dailyData;
     }
 }
