@@ -1,4 +1,5 @@
 package com.tnowad.tempest;
+
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,32 +26,34 @@ public class HourlyForecastActivity extends AppCompatActivity {
         String json = getIntent().getStringExtra("weatherData");
         WeatherResponse weather = new Gson().fromJson(json, WeatherResponse.class);
 
-        recyclerHourly.setAdapter(new DailyWeatherAdapter(getHourlyData(weather)));
+        if (weather != null && weather.hourly != null) {
+            recyclerHourly.setAdapter(new HourlyWeatherAdapter(buildHourlyData(weather)));
+        }
     }
 
-    private List<DailyWeather> getHourlyData(WeatherResponse weather) {
-        List<DailyWeather> hourlyData = new ArrayList<>();
-        List<String> times = weather.hourly.time;
-        List<Double> temps = weather.hourly.temperature;
-        List<Integer> codes = weather.hourly.weatherCode;
+    private List<HourlyWeather> buildHourlyData(WeatherResponse weather) {
+        List<HourlyWeather> list = new ArrayList<>();
+        var time = weather.hourly.time;
+        var temps = weather.hourly.temperature;
+        var codes = weather.hourly.weatherCode;
+        var wind = weather.hourly.windSpeed;
+        var precip = weather.hourly.precipitationProbability;
 
-        int count = Math.min(times.size(), 24);
+        int count = time.size();
 
         for (int i = 0; i < count; i++) {
-            String hourLabel = times.get(i).substring(11, 16);
-            String temp = Math.round(temps.get(i)) + "°C";
-            int icon = getIconForCode(codes.get(i));
-            hourlyData.add(new DailyWeather(hourLabel, temp, icon, 0));
+            String hour = time.get(i).substring(11, 16) + " - " + time.get(i).substring(8, 10) + "/" + time.get(i).substring(5, 7);
+            String temp = Math.round(temps.get(i)) + "°";
+            int icon = getWeatherIcon(codes.get(i));
+            list.add(new HourlyWeather(hour, temp, icon, wind.get(i), precip.get(i)));
         }
 
-        return hourlyData;
+        return list;
     }
 
-    private int getIconForCode(int code) {
-        if (code >= 51 && code <= 67) return R.drawable.ic_weather_rain;
-        else if (code >= 71 && code <= 86) return R.drawable.ic_weather_snow;
-        else if (code >= 95) return R.drawable.ic_weather_storm;
-        else if (code >= 1 && code <= 3) return R.drawable.ic_weather_cloudy;
-        else return R.drawable.ic_weather_sunny;
+    private int getWeatherIcon(int code) {
+        if (code >= 50 && code < 80) return R.drawable.ic_weather_rain;
+        if (code >= 80) return R.drawable.ic_weather_storm;
+        return R.drawable.ic_weather_sunny;
     }
 }

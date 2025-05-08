@@ -1,27 +1,23 @@
 package com.tnowad.tempest;
 
 public class HourlyWeather {
-    private String hour;
-    private String temperature;
-    private int iconResId;
+    private final String hour;
+    private final String temp;
+    private final int iconResId;
+    private final double windSpeed;
+    private final int precipitationProbability;
 
-    // Constructor for HourlyWeather
-    public HourlyWeather(String hour, String temperature, int iconResId) {
+    public HourlyWeather(String hour, String temp, int iconResId, double windSpeed, int precipitationProbability) {
         this.hour = hour;
-        this.temperature = temperature;
+        this.temp = temp;
         this.iconResId = iconResId;
+        this.windSpeed = windSpeed;
+        this.precipitationProbability = precipitationProbability;
     }
 
-    // Getter methods
-    public String getHour() {
-        return hour;
-    }
-
-    public String getTemperature() {
-        return temperature;
-    }
-
-    public int getIconResId() {
-        return iconResId;
-    }
+    public String getHour() { return hour; }
+    public String getTemp() { return temp; }
+    public int getIconResId() { return iconResId; }
+    public double getWindSpeed() { return windSpeed; }
+    public int getPrecipitationProbability() { return precipitationProbability; }
 }
