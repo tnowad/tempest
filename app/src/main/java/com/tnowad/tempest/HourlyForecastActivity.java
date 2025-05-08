@@ -25,22 +25,22 @@ public class HourlyForecastActivity extends AppCompatActivity {
         String json = getIntent().getStringExtra("weatherData");
         WeatherResponse weather = new Gson().fromJson(json, WeatherResponse.class);
 
-        recyclerHourly.setAdapter(new WeatherAdapter(getHourlyData(weather)));
+        recyclerHourly.setAdapter(new DailyWeatherAdapter(getHourlyData(weather)));
     }
 
-    private List<Weather> getHourlyData(WeatherResponse weather) {
-        List<Weather> hourlyData = new ArrayList<>();
+    private List<DailyWeather> getHourlyData(WeatherResponse weather) {
+        List<DailyWeather> hourlyData = new ArrayList<>();
         List<String> times = weather.hourly.time;
         List<Double> temps = weather.hourly.temperature;
         List<Integer> codes = weather.hourly.weatherCode;
 
-        int count = Math.min(times.size(), 24); // Only show next 24 hours
+        int count = Math.min(times.size(), 24);
 
         for (int i = 0; i < count; i++) {
-            String hourLabel = times.get(i).substring(11, 16); // Extract HH:mm
+            String hourLabel = times.get(i).substring(11, 16);
             String temp = Math.round(temps.get(i)) + "°C";
             int icon = getIconForCode(codes.get(i));
-            hourlyData.add(new Weather(hourLabel, temp, icon));
+            hourlyData.add(new DailyWeather(hourLabel, temp, icon, 0));
         }
 
         return hourlyData;
