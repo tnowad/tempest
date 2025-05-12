@@ -75,7 +75,7 @@ public class HomeActivity extends AppCompatActivity {
         btnWeatherMap = findViewById(R.id.btn_weather_map);
         toggleTempUnit = findViewById(R.id.toggle_temp_unit);
 
-        // Fetch saved temperature unit from SharedPreferences
+
         isFahrenheit = SharedPrefsHelper.getTemperatureUnit(this).equals("F");
         btnHourlyForecast.setEnabled(false);
         btnDailyForecast.setEnabled(false);
@@ -88,15 +88,15 @@ public class HomeActivity extends AppCompatActivity {
         setCurrentDate();
         fetchLocationAndWeather();
 
-        // Handle temperature unit toggle
+
         toggleTempUnit.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isFahrenheit = isChecked;
-            // Save the selected unit in SharedPreferences
+
             SharedPrefsHelper.saveTemperatureUnit(this, isFahrenheit ? "F" : "C");
-            updateTemperatureDisplay();  // Update the temperature display immediately when toggled
+            updateTemperatureDisplay();
         });
 
-        // Handle forecast buttons click
+
         btnHourlyForecast.setOnClickListener(v -> {
             if (weatherData != null) {
                 Intent intent = new Intent(HomeActivity.this, HourlyForecastActivity.class);
@@ -129,7 +129,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void updateTemperatureDisplay() {
-        // Ensure that temperature is updated according to the selected unit (Celsius or Fahrenheit)
         if (weatherData != null) {
             double temp = weatherData.currentWeather.temperature;
 
