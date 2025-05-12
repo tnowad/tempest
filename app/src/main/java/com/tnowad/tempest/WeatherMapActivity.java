@@ -1,18 +1,19 @@
 package com.tnowad.tempest;
 
 import android.os.Bundle;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.maps.model.TileProvider;
+import com.google.android.gms.maps.model.UrlTileProvider;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyCallback {
+import java.net.MalformedURLException;
+import java.net.URL;
 
-    private GoogleMap mMap;
+public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +27,25 @@ public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyC
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        String tileUrl = "https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=89f7f2ffd6532a82fdc75a27277084da";
 
-        // Example: Move camera to a specific location (replace with dynamic data)
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(21.0285, 105.8542), 12));
+        TileProvider tileProvider = new UrlTileProvider(256, 256) {
+            @Override
+            public URL getTileUrl(int x, int y, int zoom) {
+                try {
+                    return new URL(tileUrl.replace("{z}", "" + zoom)
+                            .replace("{x}", "" + x)
+                            .replace("{y}", "" + y));
+                } catch (MalformedURLException e) {
+                    return null;
+                }
+            }
+        };
 
-        // Example of adding overlays for weather (can use an API like OpenWeatherMap)
-        mMap.addMarker(new MarkerOptions().position(new LatLng(21.0285, 105.8542)).title("Current Location"));
+        TileOverlayOptions tileOverlayOptions = new TileOverlayOptions()
+                .tileProvider(tileProvider)
+                .zIndex(1);
+
+        googleMap.addTileOverlay(tileOverlayOptions);
     }
 }

@@ -45,7 +45,7 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView recyclerHourly;
     private TextView tvCity, tvDate, tvTemp, tvHumidity, tvWind, tvPrecip;
     private ImageView imgWeather;
-    private MaterialButton btnHourlyForecast, btnDailyForecast;
+    private MaterialButton btnHourlyForecast, btnDailyForecast, btnWeatherMap;
     private ToggleButton toggleTempUnit;
 
     private FusedLocationProviderClient fusedLocationClient;
@@ -53,7 +53,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private boolean isFahrenheit;
     private static final int TEMPERATURE_THRESHOLD = 35;
-    private static final int PRECIPITATION_THRESHOLD = 80; // Ngưỡng mưa (phần trăm) để cảnh báo
+    private static final int PRECIPITATION_THRESHOLD = 80;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +72,7 @@ public class HomeActivity extends AppCompatActivity {
         imgWeather = findViewById(R.id.img_weather);
         btnHourlyForecast = findViewById(R.id.btn_hourly_forecast);
         btnDailyForecast = findViewById(R.id.btn_daily_forecast);
+        btnWeatherMap = findViewById(R.id.btn_weather_map);
         toggleTempUnit = findViewById(R.id.toggle_temp_unit);
 
         // Fetch saved temperature unit from SharedPreferences
@@ -104,6 +105,11 @@ public class HomeActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Weather data not ready", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        btnWeatherMap.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, WeatherMapActivity.class);
+            startActivity(intent);
         });
 
         btnDailyForecast.setOnClickListener(v -> {
@@ -246,17 +252,26 @@ public class HomeActivity extends AppCompatActivity {
         if (code >= 80) return R.drawable.ic_weather_storm;
         return R.drawable.ic_weather_sunny;
     }
-    private void checkWeatherConditions(WeatherResponse weather) {
-        var temperature = Math.round(weather.currentWeather.temperature);
-        int precipitation = weather.hourly.precipitationProbability.get(0);
 
+    private void checkWeatherConditions(WeatherResponse weather) {
+        int code = weather.currentWeather.weathercode;
+        int precipitation = weather.hourly.precipitationProbability.get(0);
+        double temperature = weather.currentWeather.temperature;
 
         if (temperature > TEMPERATURE_THRESHOLD) {
-            sendNotification("High Temperature Alert", "The temperature is " + temperature + "°C. Stay cool!");
+            sendNotification("Heat Alert", "Current temperature is " + Math.round(temperature) + "°C. Stay hydrated!");
         }
 
         if (precipitation > PRECIPITATION_THRESHOLD) {
-            sendNotification("Heavy Rain Alert", "There is a " + precipitation + "% chance of rain. Carry an umbrella!");
+            sendNotification("Heavy Rain Alert", "Chance of rain: " + precipitation + "%. Don’t forget your umbrella!");
+        }
+
+        if (code >= 95 && code <= 99) {
+            sendNotification("Storm Alert", "Thunderstorms expected. Stay indoors and stay safe.");
+        } else if (code >= 80 && code <= 86) {
+            sendNotification("Heavy Rain Alert", "Heavy rain is falling. Drive carefully.");
+        } else if (code >= 70 && code <= 79) {
+            sendNotification("Snow Alert", "Snowfall expected. Dress warmly and be cautious.");
         }
     }
 
