@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +17,8 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -27,7 +30,9 @@ import com.tnowad.tempest.api.WeatherResponse;
 import com.tnowad.tempest.utils.SharedPrefsHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import retrofit2.Call;
@@ -36,6 +41,8 @@ import retrofit2.Response;
 
 public class HomeActivity extends AppCompatActivity {
     private WeatherResponse weatherData;
+
+    private RecyclerView recyclerHourly;
     private TextView tvCity, tvDate, tvTemp, tvHumidity, tvWind, tvPrecip;
     private ImageView imgWeather;
     private MaterialButton btnHourlyForecast, btnDailyForecast;
@@ -59,6 +66,9 @@ public class HomeActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.tv_humidity);
         tvWind = findViewById(R.id.tv_wind);
         tvPrecip = findViewById(R.id.tv_precip);
+
+        recyclerHourly = findViewById(R.id.recycler_hourly);
+        recyclerHourly.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         imgWeather = findViewById(R.id.img_weather);
         btnHourlyForecast = findViewById(R.id.btn_hourly_forecast);
         btnDailyForecast = findViewById(R.id.btn_daily_forecast);
@@ -193,6 +203,8 @@ public class HomeActivity extends AppCompatActivity {
     private void updateUI(WeatherResponse weather) {
         Log.d(TAG, "updateUI: Updating UI with weather data");
 
+        recyclerHourly.setAdapter(new HourlyWeatherAdapter(buildHourlyData(weather)));
+        recyclerHourly.setVisibility(View.VISIBLE);
         tvCity.setText(String.format(Locale.getDefault(), "Lat: %.2f, Lon: %.2f", weather.latitude, weather.longitude));
         updateTemperatureDisplay();
         tvHumidity.setText("Humidity: --%");
@@ -211,6 +223,29 @@ public class HomeActivity extends AppCompatActivity {
         Log.d(TAG, "Weather icon set based on code: " + code);
     }
 
+    private List<HourlyWeather> buildHourlyData(WeatherResponse weather) {
+        List<HourlyWeather> list = new ArrayList<>();
+        var time = weather.hourly.time;
+        var temps = weather.hourly.temperature;
+        var codes = weather.hourly.weatherCode;
+        var wind = weather.hourly.windSpeed;
+        var precip = weather.hourly.precipitationProbability;
+
+        int count = time.size();
+        for (int i = 0; i < count; i++) {
+            String hour = time.get(i).substring(11, 16) + " - " + time.get(i).substring(8, 10) + "/" + time.get(i).substring(5, 7);
+            String temp = Math.round(temps.get(i)) + "°";
+            int icon = getWeatherIcon(codes.get(i));
+            list.add(new HourlyWeather(hour, temp, icon, wind.get(i), precip.get(i)));
+        }
+        return list;
+    }
+
+    private int getWeatherIcon(int code) {
+        if (code >= 50 && code < 80) return R.drawable.ic_weather_rain;
+        if (code >= 80) return R.drawable.ic_weather_storm;
+        return R.drawable.ic_weather_sunny;
+    }
     private void checkWeatherConditions(WeatherResponse weather) {
         var temperature = Math.round(weather.currentWeather.temperature);
         int precipitation = weather.hourly.precipitationProbability.get(0);

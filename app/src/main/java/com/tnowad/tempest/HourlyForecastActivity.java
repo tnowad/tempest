@@ -21,7 +21,7 @@ public class HourlyForecastActivity extends AppCompatActivity {
         setContentView(R.layout.activity_hourly_forecast);
 
         recyclerHourly = findViewById(R.id.recycler_hourly);
-        recyclerHourly.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        recyclerHourly.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 
         String json = getIntent().getStringExtra("weatherData");
         WeatherResponse weather = new Gson().fromJson(json, WeatherResponse.class);
