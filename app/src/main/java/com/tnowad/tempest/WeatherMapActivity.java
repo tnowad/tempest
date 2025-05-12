@@ -1,19 +1,24 @@
 package com.tnowad.tempest;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,11 +28,14 @@ public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyC
     private GoogleMap map;
     private TileOverlay currentOverlay;
     private final String apiKey = "89f7f2ffd6532a82fdc75a27277084da";
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather_map);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         Spinner spinner = findViewById(R.id.layer_spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -50,9 +58,14 @@ public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyC
         mapFragment.getMapAsync(this);
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.map = googleMap;
+
+        map.setMyLocationEnabled(true);
+        showCurrentLocation();
+
         updateTileOverlay("clouds_new"); // Default layer
     }
 
@@ -68,9 +81,9 @@ public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyC
             public URL getTileUrl(int x, int y, int zoom) {
                 try {
                     return new URL(tileUrl
-                            .replace("{z}", "" + zoom)
-                            .replace("{x}", "" + x)
-                            .replace("{y}", "" + y));
+                            .replace("{z}", String.valueOf(zoom))
+                            .replace("{x}", String.valueOf(x))
+                            .replace("{y}", String.valueOf(y)));
                 } catch (MalformedURLException e) {
                     return null;
                 }
@@ -80,5 +93,15 @@ public class WeatherMapActivity extends AppCompatActivity implements OnMapReadyC
         currentOverlay = map.addTileOverlay(new TileOverlayOptions()
                 .tileProvider(tileProvider)
                 .zIndex(1));
+    }
+
+    @SuppressLint("MissingPermission")
+    private void showCurrentLocation() {
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 10));
+            }
+        });
     }
 }
